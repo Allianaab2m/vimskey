@@ -15,7 +15,7 @@ export const connectToTimeline = async (
   const stream = new Misskey.Stream(instanceUri, { token });
   const channel = stream.useChannel(timelineType);
   const timelineText: Array<string> = [];
-  const tlbuffer = await buffer.open(denops, "vimskey://localtimeline");
+  const tlbuffer = await buffer.open(denops, `vimskey://${timelineType}`);
   channel.on("note", async (note) => {
     if (note.text) {
       const bufferText =
