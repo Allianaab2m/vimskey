@@ -22,7 +22,7 @@ Plug 'Allianaab2m/vimskey'
 
 ## Usage
 
-`:VimskeyOpen(Home, Local, Hybrid, Global)Timeline`
+`:VimskeyOpenTL <'home' | 'local' | 'hybrid' | 'global'>`
 
 タイムラインを表示します。
 
