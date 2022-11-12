@@ -1,5 +1,39 @@
-import { TimelineType } from "./validate.ts";
-import { buffer, Denops, Misskey, z } from "./deps.ts";
+import { NoteParamType, TimelineType } from "./validate.ts";
+import { buffer, Denops, helper, Misskey, variable } from "./deps.ts";
+
+export const tellUser = async (denops: Denops, prompt: string, opt: {
+  variable?: {
+    vimType: keyof typeof variable;
+    name: string;
+  };
+}) => {
+  if (opt.variable) {
+    const vimVal = await variable[opt.variable.vimType].get<string>(
+      denops,
+      `Vimskey${opt.variable.name}`,
+    );
+    if (vimVal) {
+      return vimVal;
+    }
+  }
+
+  const userInput = await helper.input(denops, {
+    prompt: prompt,
+  });
+
+  if (userInput) {
+    if (opt.variable) {
+      await variable[opt.variable.vimType].set(
+        denops,
+        `Vimskey${opt.variable.name}`,
+        userInput,
+      );
+    }
+    return userInput;
+  } else {
+    throw "Userinput is empty";
+  }
+};
 
 export const connectToTimeline = async (
   denops: Denops,
@@ -19,4 +53,16 @@ export const connectToTimeline = async (
       await buffer.replace(denops, tlbuffer.bufnr, timelineText);
     }
   });
+};
+
+export const sendNote = async (
+  instanceUri: string,
+  token: string,
+  noteParams: NoteParamType,
+) => {
+  const client = new Misskey.api.APIClient({
+    origin: instanceUri,
+    credential: token,
+  });
+  await client.request("notes/create", noteParams);
 };
