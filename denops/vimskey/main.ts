@@ -1,24 +1,22 @@
 import { Denops, helper, unknownutil } from "./deps.ts";
+import { TimelineTypeSchema } from "./validate.ts";
 import { connectToTimeline } from "./libs.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
-    async boot(): Promise<void> {
-      const instanceUri = await helper.input(denops, {
-        prompt: "InstanceURI:",
-      });
-      const token = await helper.input(denops, {
-        prompt: "Token:",
-      });
-      if (instanceUri && token) {
-        return connectToTimeline(denops, instanceUri, token, "hybridTimeline");
-      } else {
-        return;
-      }
-    },
-
     async openTimeline(timelineType: unknown): Promise<void> {
-      const ensuredTlType = unknownutil.ensureString(timelineType);
+      const validatedTimelineType = (() => {
+        try {
+          return TimelineTypeSchema.parse(
+            unknownutil.ensureString(timelineType),
+          );
+        } catch (_e) {
+          helper.echoerr(
+            denops,
+            "Invalid TimelineType. Vimskey will open local Timeline.",
+          );
+        }
+      })();
       const instanceUri = await helper.input(denops, {
         prompt: "InstanceURI:",
       });
@@ -26,38 +24,22 @@ export async function main(denops: Denops): Promise<void> {
         prompt: "Token:",
       });
       if (instanceUri && token) {
-        switch (ensuredTlType) {
-          case "global":
-            connectToTimeline(denops, instanceUri, token, "globalTimeline");
-            break;
-          case "hybrid":
-            connectToTimeline(denops, instanceUri, token, "hybridTimeline");
-            break;
-          case "local":
-            connectToTimeline(denops, instanceUri, token, "localTimeline");
-            break;
-          case "home":
-            connectToTimeline(denops, instanceUri, token, "homeTimeline");
-            break;
-          default:
-            break;
-        }
+        connectToTimeline(denops, instanceUri, token, validatedTimelineType);
       } else {
-        return helper.echoerr(denops, "InstanceURI or Token invalid");
+        return helper.echoerr(denops, "InstanceURI or Token is empty.");
       }
     },
   };
 
   await denops.cmd(
-    `command! -nargs=0 VimskeyOpenGlobalTL call denops#request('${denops.name}', 'openTimeline', ['global'])`,
+    `
+    function! VimskeyTimelineTypeCompletion(ArgLead, CmdLine, CursorPos)
+      let l:filter_cmd = printf('v:val =~ "^%s"', a:ArgLead)
+      return filter(['global', 'hybrid', 'local', 'home'], l:filter_cmd)
+    endfunction
+    `,
   );
   await denops.cmd(
-    `command! -nargs=0 VimskeyOpenHybridTL call denops#request('${denops.name}', 'openTimeline', ['hybrid'])`,
-  );
-  await denops.cmd(
-    `command! -nargs=0 VimskeyOpenLocalTL call denops#request('${denops.name}', 'openTimeline', ['local'])`,
-  );
-  await denops.cmd(
-    `command! -nargs=0 VimskeyOpenHomeTL call denops#request('${denops.name}', 'openTimeline', ['home'])`,
+    `command! -nargs=1 -complete=customlist,VimskeyTimelineTypeCompletion VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', ['<args>'])`,
   );
 }
