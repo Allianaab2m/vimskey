@@ -1,4 +1,4 @@
-import { NoteParamType, TimelineType } from "./validate.ts";
+import { NoteParamType, NoteType, TimelineType } from "./validate.ts";
 import { buffer, Denops, helper, Misskey, variable } from "./deps.ts";
 
 export const tellUser = async (denops: Denops, prompt: string, opt: {
