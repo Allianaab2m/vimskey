@@ -43,19 +43,23 @@ export const connectToTimeline = async (
 ) => {
   const stream = new Misskey.Stream(instanceUri, { token });
   const channel = stream.useChannel(`${timelineType}Timeline`);
-  const timelineText: Array<string> = [];
+  const timelineData: { id: string; text: string }[] = [];
   const tlbuffer = await buffer.open(denops, `vimskey://${timelineType}TL`);
   channel.on("note", async (note) => {
     if (note.text) {
       const bufferText =
         `${note.user.name}(${note.user.username}): ${note.text}`;
-      timelineText.unshift(bufferText);
-      await buffer.replace(denops, tlbuffer.bufnr, timelineText);
+      timelineData.unshift({ id: note.id, text: bufferText });
+      await buffer.replace(
+        denops,
+        tlbuffer.bufnr,
+        timelineData.map((v) => v.text),
+      );
     }
   });
 };
 
-export const sendNote = async (
+export const sendNoteRequest = async (
   instanceUri: string,
   token: string,
   noteParams: NoteParamType,
