@@ -29,6 +29,29 @@ export async function main(denops: Denops): Promise<void> {
         return helper.echoerr(denops, "InstanceURI or Token is empty.");
       }
     },
+    async sendNote(text: unknown, visiblity: unknown) {
+      const validatedNoteParams = (() => {
+        try {
+          return NoteParamTypeSchema.parse({
+            text,
+            visiblity,
+          });
+        } catch (e) {
+          console.log(e);
+          helper.echoerr(denops, "text or visiblity is invalid.");
+        }
+      })();
+      const instanceUri = await tellUser(denops, "InstanceURI:", {
+        variable: { name: "InstanceUri", vimType: "g" },
+      });
+      const token = await tellUser(denops, "Token:", {
+        variable: { name: "Token", vimType: "g" },
+      });
+      console.log(validatedNoteParams);
+      if (validatedNoteParams) {
+        sendNoteRequest(instanceUri, token, validatedNoteParams);
+      }
+    },
   };
 
   await denops.cmd(
@@ -41,5 +64,9 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=1 -complete=customlist,VimskeyTimelineTypeCompletion VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', ['<args>'])`,
+  );
+
+  await denops.cmd(
+    `command! -nargs=+ VimskeyNoteFromCmdline call denops#request('${denops.name}', 'sendNote', [<args>])`,
   );
 }
