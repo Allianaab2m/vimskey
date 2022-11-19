@@ -1,13 +1,13 @@
-import { Denops, helper, unknownutil } from "./deps.ts";
-import { TimelineTypeSchema } from "./validate.ts";
-import { connectToTimeline } from "./libs.ts";
+import { Denops, fn, helper, unknownutil, variable } from "./deps.ts";
+import { BufferNoteData, NoteParamSchema, TimelineSchema } from "./validate.ts";
+import { connectToTimeline, sendNoteRequest, tellUser } from "./libs.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
     async openTimeline(timelineType: unknown): Promise<void> {
       const validatedTimelineType = (() => {
         try {
-          return TimelineTypeSchema.parse(
+          return TimelineSchema.parse(
             unknownutil.ensureString(timelineType),
           );
         } catch (_e) {
@@ -29,6 +29,41 @@ export async function main(denops: Denops): Promise<void> {
         return helper.echoerr(denops, "InstanceURI or Token is empty.");
       }
     },
+    async sendNote(text: unknown, visiblity: unknown) {
+      const validatedNoteParams = (() => {
+        try {
+          return NoteParamSchema.parse({
+            text,
+            visiblity,
+          });
+        } catch (e) {
+          console.log(e);
+          helper.echoerr(denops, "text or visiblity is invalid.");
+        }
+      })();
+      const instanceUri = await tellUser(denops, "InstanceURI:", {
+        variable: { name: "InstanceUri", vimType: "g" },
+      });
+      const token = await tellUser(denops, "Token:", {
+        variable: { name: "Token", vimType: "g" },
+      });
+      console.log(validatedNoteParams);
+      if (validatedNoteParams) {
+        sendNoteRequest(instanceUri, token, validatedNoteParams);
+      }
+    },
+    async getCursorNoteData() {
+      const cursorPos = await fn.getcurpos(denops);
+      const bufferLogData: Array<BufferNoteData> = JSON.parse(
+        await Deno.readTextFile("/tmp/vimskeyLog.json"),
+      );
+      // console.log(bufferLogData[cursorPos[1] - 1].id);
+      variable.w.set(
+        denops,
+        "VimskeyCopiedNoteId",
+        bufferLogData[cursorPos[1] - 1].id,
+      );
+    },
   };
 
   await denops.cmd(
@@ -41,5 +76,9 @@ export async function main(denops: Denops): Promise<void> {
   );
   await denops.cmd(
     `command! -nargs=1 -complete=customlist,VimskeyTimelineTypeCompletion VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', ['<args>'])`,
+  );
+
+  await denops.cmd(
+    `command! -nargs=+ VimskeyNoteFromCmdline call denops#request('${denops.name}', 'sendNote', [<args>])`,
   );
 }
