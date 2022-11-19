@@ -1,9 +1,9 @@
 import { z } from "./deps.ts";
 
-export const TimelineTypeSchema = z.enum(["hybrid", "home", "local", "global"]);
-export type TimelineType = z.infer<typeof TimelineTypeSchema>;
+export const TimelineSchema = z.enum(["hybrid", "home", "local", "global"]);
+export type Timeline = z.infer<typeof TimelineSchema>;
 
-export const NoteParamTypeSchema = z.object({
+export const NoteParamSchema = z.object({
   visiblity: z.enum(["public", "home", "followers", "specified"]).default(
     "public",
   ),
@@ -25,9 +25,9 @@ export const NoteParamTypeSchema = z.object({
     expiresAfter: z.number().nullable(),
   }).nullable().default(null),
 });
-export type NoteParamType = z.infer<typeof NoteParamTypeSchema>;
+export type NoteParam = z.infer<typeof NoteParamSchema>;
 
-export const UserTypeSchema = z.object({
+export const UserSchema = z.object({
   id: z.string(),
   createdAt: z.string(),
   username: z.string(),
@@ -37,15 +37,22 @@ export const UserTypeSchema = z.object({
   avatarUrl: z.string(),
   avatarBlurhash: z.string(),
 });
-export type UserType = z.infer<typeof UserTypeSchema>;
+export type User = z.infer<typeof UserSchema>;
 
-export const NoteTypeSchema = z.object({
+export const NoteSchema = z.object({
   id: z.string(),
   createdAt: z.string(),
   text: z.string().nullable(),
   cw: z.string().nullable(),
-  user: UserTypeSchema,
+  user: UserSchema,
   userId: z.string(),
   visibility: z.string(),
 });
-export type NoteType = z.infer<typeof NoteTypeSchema>;
+export type Note = z.infer<typeof NoteSchema>;
+
+export const BufferNoteDataSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+});
+
+export type BufferNoteData = z.infer<typeof BufferNoteDataSchema>;

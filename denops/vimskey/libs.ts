@@ -1,4 +1,4 @@
-import { NoteParamType, NoteType, TimelineType } from "./validate.ts";
+import { BufferNoteData, Note, NoteParam, Timeline } from "./validate.ts";
 import { buffer, Denops, helper, Misskey, variable } from "./deps.ts";
 
 export const tellUser = async (denops: Denops, prompt: string, opt: {
@@ -39,13 +39,13 @@ export const connectToTimeline = async (
   denops: Denops,
   instanceUri: string,
   token: string,
-  timelineType: TimelineType = "local",
+  timelineType: Timeline = "local",
 ) => {
   const stream = new Misskey.Stream(instanceUri, { token });
   const channel = stream.useChannel(`${timelineType}Timeline`);
-  const timelineData: { id: string; text: string }[] = [];
+  const timelineData: Array<BufferNoteData> = [];
   const tlbuffer = await buffer.open(denops, `vimskey://${timelineType}TL`);
-  channel.on("note", async (note) => {
+  channel.on("note", async (note: Note) => {
     if (note.text) {
       const bufferText =
         `${note.user.name}(${note.user.username}): ${note.text}`;
@@ -55,6 +55,10 @@ export const connectToTimeline = async (
         tlbuffer.bufnr,
         timelineData.map((v) => v.text),
       );
+      await Deno.writeTextFile(
+        "/tmp/vimskeyLog.json",
+        JSON.stringify(timelineData),
+      );
     }
   });
 };
@@ -62,7 +66,7 @@ export const connectToTimeline = async (
 export const sendNoteRequest = async (
   instanceUri: string,
   token: string,
-  noteParams: NoteParamType,
+  noteParams: NoteParam,
 ) => {
   const client = new Misskey.api.APIClient({
     origin: instanceUri,

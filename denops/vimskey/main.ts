@@ -1,13 +1,13 @@
-import { Denops, helper, unknownutil } from "./deps.ts";
-import { TimelineTypeSchema } from "./validate.ts";
-import { connectToTimeline } from "./libs.ts";
+import { Denops, fn, helper, unknownutil, variable } from "./deps.ts";
+import { BufferNoteData, NoteParamSchema, TimelineSchema } from "./validate.ts";
+import { connectToTimeline, sendNoteRequest, tellUser } from "./libs.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
     async openTimeline(timelineType: unknown): Promise<void> {
       const validatedTimelineType = (() => {
         try {
-          return TimelineTypeSchema.parse(
+          return TimelineSchema.parse(
             unknownutil.ensureString(timelineType),
           );
         } catch (_e) {
@@ -32,7 +32,7 @@ export async function main(denops: Denops): Promise<void> {
     async sendNote(text: unknown, visiblity: unknown) {
       const validatedNoteParams = (() => {
         try {
-          return NoteParamTypeSchema.parse({
+          return NoteParamSchema.parse({
             text,
             visiblity,
           });
@@ -51,6 +51,18 @@ export async function main(denops: Denops): Promise<void> {
       if (validatedNoteParams) {
         sendNoteRequest(instanceUri, token, validatedNoteParams);
       }
+    },
+    async getCursorNoteData() {
+      const cursorPos = await fn.getcurpos(denops);
+      const bufferLogData: Array<BufferNoteData> = JSON.parse(
+        await Deno.readTextFile("/tmp/vimskeyLog.json"),
+      );
+      // console.log(bufferLogData[cursorPos[1] - 1].id);
+      variable.w.set(
+        denops,
+        "VimskeyCopiedNoteId",
+        bufferLogData[cursorPos[1] - 1].id,
+      );
     },
   };
 
