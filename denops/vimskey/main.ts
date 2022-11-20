@@ -1,6 +1,11 @@
 import { Denops, fn, helper, unknownutil, variable } from "./deps.ts";
 import { BufferNoteData, NoteParamSchema, TimelineSchema } from "./validate.ts";
-import { connectToTimeline, sendNoteRequest, tellUser } from "./libs.ts";
+import {
+  connectToNotification,
+  connectToTimeline,
+  sendNoteRequest,
+  tellUser,
+} from "./libs.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
@@ -63,6 +68,15 @@ export async function main(denops: Denops): Promise<void> {
         "VimskeyCopiedNoteId",
         bufferLogData[cursorPos[1] - 1].id,
       );
+    },
+    async openNotification() {
+      const instanceUri = await tellUser(denops, "InstanceURI:", {
+        variable: { name: "InstanceUri", vimType: "g" },
+      });
+      const token = await tellUser(denops, "Token:", {
+        variable: { name: "Token", vimType: "g" },
+      });
+      connectToNotification(denops, instanceUri, token);
     },
   };
 
