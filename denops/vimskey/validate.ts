@@ -39,6 +39,8 @@ export const UserSchema = z.object({
 });
 export type User = z.infer<typeof UserSchema>;
 
+export const ReactionSchema = z.object({});
+
 export const NoteSchema = z.object({
   id: z.string(),
   createdAt: z.string(),
@@ -49,6 +51,27 @@ export const NoteSchema = z.object({
   visibility: z.string(),
 });
 export type Note = z.infer<typeof NoteSchema>;
+
+export const RenoteSchema = z.object({
+  renote: z.object({
+    id: z.string(),
+    createdAt: z.string(),
+    userId: z.string(),
+    user: UserSchema,
+    text: z.string(),
+    cw: z.string().nullable(),
+    visiblity: z.enum(["public", "home", "followers", "specified"]),
+    renoteCount: z.number(),
+    repliesCount: z.number(),
+    reactions: ReactionSchema,
+    emojis: z.string().array(), // TODO: 多分違う
+    fileIds: z.string().array(),
+    replyId: z.string().nullable(),
+    renoteId: z.string().nullable(),
+  }),
+});
+
+export type Renote = Note & z.infer<typeof RenoteSchema>;
 
 export const BufferNoteDataSchema = z.object({
   id: z.string(),
