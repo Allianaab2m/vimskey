@@ -21,12 +21,18 @@ Plug 'Allianaab2m/vimskey'
 ```
 
 ## Usage
+実行前にインスタンスURL(https://misskey.io など)とAPIトークンを入力してください。
+
+URLとトークンはVimを閉じるまで保存されます。
 
 `:VimskeyOpenTL <'home' | 'local' | 'hybrid' | 'global'>`
 
 タイムラインを表示します。
 
-実行した後，インスタンスURL(https://misskey.io など)とAPIトークンを入力してください。
+`:VimskeyNoteFromCmdline <content> <'public' | 'home'>`
+
+コマンドラインからノートを送信します。
+
 
 ## Todo
 
