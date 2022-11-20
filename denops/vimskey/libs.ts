@@ -1,4 +1,11 @@
-import { BufferNoteData, Note, NoteParam, Timeline } from "./validate.ts";
+import {
+  BufferNoteData,
+  Note,
+  NoteParam,
+  Renote,
+  Timeline,
+  User,
+} from "./validate.ts";
 import { buffer, Denops, helper, Misskey, variable } from "./deps.ts";
 
 export const tellUser = async (denops: Denops, prompt: string, opt: {
@@ -60,6 +67,36 @@ export const connectToTimeline = async (
         JSON.stringify(timelineData),
       );
     }
+  });
+};
+
+export const connectToNotification = (
+  denops: Denops,
+  instanceUri: string,
+  token: string,
+) => {
+  const stream = new Misskey.Stream(instanceUri, { token });
+  const channel = stream.useChannel("main");
+  channel.on("reply", (note: Note) => {
+    const notifText = `[Vimskey] Replied from ${note.user.name}: ${note.text}`;
+    desktopNotify(denops, notifText);
+  });
+  channel.on("renote", (note: Renote) => {
+    console.log(note.renote.text);
+    const notifText =
+      `[Vimskey] Renoted from ${note.user.name}: ${note.renote.text}`;
+    desktopNotify(denops, notifText);
+  });
+  channel.on("followed", (user: User) => {
+    const notifText = `[Vimskey] Followed from ${user.name}`;
+    desktopNotify(denops, notifText);
+  });
+};
+
+export const desktopNotify = (denops: Denops, text: string) => {
+  helper.echo(denops, text);
+  Deno.run({
+    cmd: ["notify-send", text],
   });
 };
 
