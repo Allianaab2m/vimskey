@@ -88,6 +88,11 @@ export async function main(denops: Denops): Promise<void> {
     endfunction
     `,
   );
+
+  await denops.cmd(
+    `command! -nargs=0 VimskeyNotification call denops#request('${denops.name}', 'openNotification', [])`,
+  );
+
   await denops.cmd(
     `command! -nargs=1 -complete=customlist,VimskeyTimelineTypeCompletion VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', ['<args>'])`,
   );
