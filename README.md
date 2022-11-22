@@ -21,9 +21,12 @@ Plug 'Allianaab2m/vimskey'
 ```
 
 ## Usage
-実行前にインスタンスURL(https://misskey.io など)とAPIトークンを入力してください。
 
-URLとトークンはVimを閉じるまで保存されます。
+実行時にログインするよう求められます。
+
+インスタンスURIを入力し,起動したブラウザで認証してください。
+
+ログインの状態はVimを閉じるまで保存されます。
 
 `:VimskeyOpenTL <'home' | 'local' | 'hybrid' | 'global'>`
 
@@ -36,6 +39,7 @@ URLとトークンはVimを閉じるまで保存されます。
 `:VimskeyNotification`
 
 コマンド実行後からの通知を受け取ります。
+
 `notify-send`コマンドが実行できる環境ではデスクトップ通知も行います。
 
 ## Todo
