@@ -6,7 +6,7 @@ import {
   Timeline,
   User,
 } from "./validate.ts";
-import { buffer, Denops, helper, Misskey, variable } from "./deps.ts";
+import { buffer, Denops, helper, MiAuth, Misskey, variable } from "./deps.ts";
 
 export const tellUser = async (denops: Denops, prompt: string, opt: {
   variable?: {
@@ -39,6 +39,60 @@ export const tellUser = async (denops: Denops, prompt: string, opt: {
     return userInput;
   } else {
     throw "Userinput is empty";
+  }
+};
+
+export const getMiAuthToken = async (denops: Denops, instanceUri: string) => {
+  const vimVal = await variable.g.get<string>(
+    denops,
+    "VimskeyToken",
+  );
+  if (vimVal) {
+    return vimVal;
+  }
+
+  const p = MiAuth.Permissions;
+  const param: MiAuth.UrlParam = {
+    name: "Vimskey",
+    permission: [
+      p.AccountRead,
+      p.AccountWrite,
+      p.NotesRead,
+      p.NotesWrite,
+      p.BlocksRead,
+      p.BlocksWrite,
+      p.FavoritesRead,
+      p.FavoritesWrite,
+      p.FollowingRead,
+      p.FollowingWrite,
+      p.MessagingRead,
+      p.messagingWrite,
+      p.MutesRead,
+      p.MutesWrite,
+      p.NotificationsRead,
+      p.NotificationsWrite,
+    ],
+  };
+  const session = crypto.randomUUID();
+
+  const miauth = new MiAuth.MiAuth(instanceUri, param, session);
+
+  await helper.echo(denops, "Go to your launched browser.");
+  Deno.run({
+    cmd: ["xdg-open", miauth.authUrl()],
+  });
+
+  await helper.input(denops, {
+    text: "After authentication is complete, press enter...",
+  });
+
+  const token = await miauth.getToken().catch((e) => console.log(e));
+
+  if (token) {
+    await variable.g.set(denops, "VimskeyToken", token);
+    return token;
+  } else {
+    return null;
   }
 };
 
