@@ -43,6 +43,12 @@ Plug 'Allianaab2m/vimskey'
 
 `notify-send`コマンドが実行できる環境ではデスクトップ通知も行います。
 
+## for Neovim Users
+
+Neovimを使っている方は[noice.nvim](https://github.com/folke/noice.nvim)をインストールすることをおすすめします。
+
+![withNoice](images/withNoice.png)
+
 ## Todo
 
 - [ ] ノート機能
@@ -50,3 +56,9 @@ Plug 'Allianaab2m/vimskey'
   - [x] Cmdlineから
 - [ ] Renote機能
 - [ ] 設定保存機能
+
+## Thanks!
+
+- [denops.vim](https://github.com/vim-denops/denops.vim)
+- [misskey.js](https://github.com/misskey-dev/misskey.js)
+- [MiAuth.js](https://github.com/Comamoca/miauth.js)
