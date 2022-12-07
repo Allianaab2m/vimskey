@@ -6,4 +6,5 @@ export * as mapping from "https://deno.land/x/denops_std@v3.9.1/mapping/mod.ts";
 export * as fn from "https://deno.land/x/denops_std@v3.9.1/function/mod.ts";
 export * as unknownutil from "https://deno.land/x/unknownutil@v2.0.0/mod.ts";
 export * as Misskey from "npm:misskey-js@0.0.14";
+export * as MiAuth from "https://deno.land/x/miauthjs@0.0.2/mod.ts";
 export { z } from "https://deno.land/x/zod@v3.16.1/mod.ts";

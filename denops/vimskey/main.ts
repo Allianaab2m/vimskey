@@ -3,6 +3,7 @@ import { BufferNoteData, NoteParamSchema, TimelineSchema } from "./validate.ts";
 import {
   connectToNotification,
   connectToTimeline,
+  getMiAuthToken,
   sendNoteRequest,
   tellUser,
 } from "./libs.ts";
@@ -22,18 +23,17 @@ export async function main(denops: Denops): Promise<void> {
           );
         }
       })();
-      const instanceUri = await helper.input(denops, {
-        prompt: "InstanceURI:",
+
+      const instanceUri = await tellUser(denops, "InstanceURI:", {
+        variable: { name: "InstanceUri", vimType: "g" },
       });
-      const token = await helper.input(denops, {
-        prompt: "Token:",
-      });
-      if (instanceUri && token) {
+      const token = await getMiAuthToken(denops, instanceUri);
+
+      if (token) {
         connectToTimeline(denops, instanceUri, token, validatedTimelineType);
-      } else {
-        return helper.echoerr(denops, "InstanceURI or Token is empty.");
       }
     },
+
     async sendNote(text: unknown, visiblity: unknown) {
       const validatedNoteParams = (() => {
         try {
@@ -49,14 +49,13 @@ export async function main(denops: Denops): Promise<void> {
       const instanceUri = await tellUser(denops, "InstanceURI:", {
         variable: { name: "InstanceUri", vimType: "g" },
       });
-      const token = await tellUser(denops, "Token:", {
-        variable: { name: "Token", vimType: "g" },
-      });
+      const token = await getMiAuthToken(denops, instanceUri);
       console.log(validatedNoteParams);
-      if (validatedNoteParams) {
+      if (validatedNoteParams && token) {
         sendNoteRequest(instanceUri, token, validatedNoteParams);
       }
     },
+
     async getCursorNoteData() {
       const cursorPos = await fn.getcurpos(denops);
       const bufferLogData: Array<BufferNoteData> = JSON.parse(
@@ -69,14 +68,15 @@ export async function main(denops: Denops): Promise<void> {
         bufferLogData[cursorPos[1] - 1].id,
       );
     },
+
     async openNotification() {
       const instanceUri = await tellUser(denops, "InstanceURI:", {
         variable: { name: "InstanceUri", vimType: "g" },
       });
-      const token = await tellUser(denops, "Token:", {
-        variable: { name: "Token", vimType: "g" },
-      });
-      connectToNotification(denops, instanceUri, token);
+      const token = await getMiAuthToken(denops, instanceUri);
+      if (token) {
+        connectToNotification(denops, instanceUri, token);
+      }
     },
   };
 
