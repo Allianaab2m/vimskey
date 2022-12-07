@@ -4,6 +4,7 @@ Misskey client for Vim/Neovim(WIP)
 ## Install
 
 予め[Deno](https://deno.land), [denops.vim](https://github.com/vim-denops/denops.vim)がインストールされている必要があります。
+Denoは最新版をインストールしてください。
 
 Packerの場合
 
