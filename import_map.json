@@ -1,10 +1,10 @@
 {
   "imports": {
     "misskey-js": "https://esm.sh/v106/*misskey-js@0.0.15",
-    "denops_std": "https://deno.land/x/denops_std@v4.0.0",
-    "unknownutil": "https://deno.land/x/unknownutil@v2.1.0",
-    "zod": "https://deno.land/x/zod@v3.20.2",
-    "miauth": "https://deno.land/x/miauthjs@0.0.3"
+    "denops_std": "https://deno.land/x/denops_std@v4.0.0/mod.ts",
+    "unknownutil": "https://deno.land/x/unknownutil@v2.1.0/mod.ts",
+    "zod": "https://deno.land/x/zod@v3.20.2/mod.ts",
+    "miauth": "https://deno.land/x/miauthjs@0.0.3/mod.ts"
   },
   "scopes": {
     "https://esm.sh/v106/": {
