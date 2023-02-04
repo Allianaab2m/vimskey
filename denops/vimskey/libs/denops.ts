@@ -4,7 +4,7 @@ import { helper } from "../deps.ts"
 
 export const waitPressEnter = async (denops: Denops, promptText: string) => {
   await helper.input(denops, {
-    text: promptText
+    prompt: promptText
   })
 }
 
@@ -49,6 +49,6 @@ export const getVimValue = async (denops: Denops, params: {
     `vimskey#${params.name}`
   )
   // TODO: debug mode
-  console.log(`${params.name}: ${vimValue}`)
+  // console.log(`${params.name}: ${vimValue}`)
   return vimValue
 }

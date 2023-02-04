@@ -7,9 +7,10 @@
 //   sendNoteRequest,
 //   tellUser,
 // } from "./libs.ts";
-import { Denops } from "./deps.ts"
+import { Denops, helper } from "./deps.ts"
 import { auth, dps } from "./deps.ts"
 import { system } from "./deps.ts"
+import { sendNoteReq } from "./libs/misskey.ts"
 import { getVimValue } from "./libs/denops.ts";
 
 export async function main(denops: Denops): Promise<void> {
@@ -91,11 +92,33 @@ export async function main(denops: Denops): Promise<void> {
       await dps.waitPressEnter(denops, "After authentication is complete, press enter...")
 
       await dps.setVimValue(denops, { type: "g", name: "token", value: await miauth.getToken() })
+    },
+
+    async sendNote() {
+      const token = await getVimValue(denops, { type: "g", name: "token" }) 
+      if (token === null) {
+        await denops.dispatcher.getToken()
+        await denops.dispatcher.sendNote()
+      }
+      
+      const noteBody = await helper.input(denops, {
+        prompt: "What you want to say? "
+      })
+
+      if (noteBody) {
+        return await sendNoteReq(denops, { body: noteBody })
+      } else {
+        throw "[User input]Note body is empty"
+      }
     }
   };
 
   await denops.cmd(
     `command! -nargs=0 VimskeyAuth call denops#request('${denops.name}', 'getToken', [])`
+  )
+
+  await denops.cmd(
+    `command! -nargs=0 VimskeyNote call denops#request('${denops.name}', 'sendNote', [])`
   )
 
   // await denops.cmd(
