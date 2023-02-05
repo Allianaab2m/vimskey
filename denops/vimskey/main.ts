@@ -88,6 +88,7 @@ export async function main(denops: Denops): Promise<void> {
       const origin = await dps.saveInput(denops, { type: "g", name: "instance#origin", prompt: "InstanceUrl: " })
       const miauth = auth.useMiauth(origin)
 
+      console.log(`Auth URL: ${miauth.authUrl()}`)
       system.browserOpen(miauth.authUrl())
       await dps.waitPressEnter(denops, "After authentication is complete, press enter...")
 
