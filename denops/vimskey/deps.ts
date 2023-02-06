@@ -4,6 +4,7 @@ export {
   Permissions,
   type UrlParam,
 } from "https://deno.land/x/miauthjs@0.0.4/mod.ts";
+export * as unknownutil from "https://deno.land/x/unknownutil@v2.1.0/mod.ts"
 export * as helper from "https://deno.land/x/denops_std@v4.0.0/helper/mod.ts";
 export * as buffer from "https://deno.land/x/denops_std@v4.0.0/buffer/mod.ts";
 export * as fn from "https://deno.land/x/denops_std@v4.0.0/function/mod.ts";

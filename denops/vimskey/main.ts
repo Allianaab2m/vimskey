@@ -10,34 +10,41 @@
 import { Denops, helper } from "./deps.ts";
 import { auth, dps } from "./deps.ts";
 import { open } from "./deps.ts";
-import { sendNoteReq } from "./libs/misskey.ts";
+import { zod } from "./deps.ts"
+import { unknownutil } from "./deps.ts"
+import { sendNoteReq, connectTimeline } from "./libs/misskey.ts";
 import { getVimValue } from "./libs/denops.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
-    // async openTimeline(timelineType: unknown): Promise<void> {
-    //   const validatedTimelineType = (() => {
-    //     try {
-    //       return TimelineSchema.parse(
-    //         unknownutil.ensureString(timelineType),
-    //       );
-    //     } catch (_e) {
-    //       helper.echoerr(
-    //         denops,
-    //         "Invalid TimelineType. Vimskey will open local Timeline.",
-    //       );
-    //     }
-    //   })();
-    //
-    //   const instanceUri = await tellUser(denops, "InstanceURI:", {
-    //     variable: { name: "InstanceUri", vimType: "g" },
-    //   });
-    //   const token = await getMiAuthToken(denops, instanceUri);
-    //
-    //   if (token) {
-    //     connectToTimeline(denops, instanceUri, token, validatedTimelineType);
-    //   }
-    // },
+    async openTimeline(timelineType: unknown): Promise<void> {
+      const Timeline = zod.enum(["hybrid", "home", "local", "global"]);
+      const validatedTimelineType = (() => {
+        try {
+          return Timeline.parse(
+            unknownutil.ensureString(timelineType),
+          );
+        } catch (_e) {
+          helper.echoerr(
+            denops,
+            "Invalid TimelineType. Vimskey will open local Timeline.",
+          );
+        }
+      })();
+
+      const token = await getVimValue(denops, { type: "g", name: "token" });
+      // const token = await system.readConfig()
+      if (token === null) {
+        await denops.dispatcher.getToken();
+        await denops.dispatcher.openTimeline(validatedTimelineType)
+        return
+      }
+      const instanceUri = await getVimValue(denops, { type: "g", name: "instance#origin" }) as string
+
+      if (token) {
+        await connectTimeline(denops, instanceUri, token, validatedTimelineType);
+      }
+    },
 
     // async sendNote(text: unknown, visiblity: unknown) {
     //   const validatedNoteParams = (() => {
@@ -141,6 +148,10 @@ export async function main(denops: Denops): Promise<void> {
   await denops.cmd(
     `command! -nargs=0 VimskeyNote call denops#request('${denops.name}', 'sendNote', [])`,
   );
+
+  await denops.cmd(
+    `command! -nargs=0 VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', [])`
+  )
 
   // await denops.cmd(
   //   `command! -nargs=0 VimskeyTest call denops#request('${denops.name}', 'test', [])`,
