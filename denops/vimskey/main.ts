@@ -7,10 +7,10 @@
 //   sendNoteRequest,
 //   tellUser,
 // } from "./libs.ts";
-import { Denops, helper } from "./deps.ts"
-import { auth, dps } from "./deps.ts"
-import { system } from "./deps.ts"
-import { sendNoteReq } from "./libs/misskey.ts"
+import { Denops, helper } from "./deps.ts";
+import { auth, dps } from "./deps.ts";
+import { open } from "./deps.ts";
+import { sendNoteReq } from "./libs/misskey.ts";
 import { getVimValue } from "./libs/denops.ts";
 
 export async function main(denops: Denops): Promise<void> {
@@ -83,45 +83,68 @@ export async function main(denops: Denops): Promise<void> {
     //     connectToNotification(denops, instanceUri, token);
     //   }
     // },
+
     async getToken() {
-      if (await getVimValue(denops, { type: "g", name: "token" })) return console.log("Already authed.")
-      const origin = await dps.saveInput(denops, { type: "g", name: "instance#origin", prompt: "InstanceUrl: " })
-      const miauth = auth.useMiauth(origin)
+      if (await getVimValue(denops, { type: "g", name: "token" })) {
+        return console.log("Already authed.");
+      }
 
-      console.log(`Auth URL: ${miauth.authUrl()}`)
-      system.browserOpen(miauth.authUrl())
-      await dps.waitPressEnter(denops, "After authentication is complete, press enter...")
+      // if (Deno.build.os === "windows") {
+      //   return console.log("Please use `%APPDATA%/vimskey/config.json instead of using `VimskeyAuth` command.")
+      // }
 
-      await dps.setVimValue(denops, { type: "g", name: "token", value: await miauth.getToken() })
+      const origin = await dps.saveInput(denops, {
+        type: "g",
+        name: "instance#origin",
+        prompt: "InstanceUrl: ",
+        text: "https://",
+      });
+      const miauth = auth.useMiauth(origin);
+
+      await open(miauth.authUrl());
+      await dps.waitPressEnter(
+        denops,
+        "After authentication is complete, press enter...",
+      );
+
+      await dps.setVimValue(denops, {
+        type: "g",
+        name: "token",
+        value: await miauth.getToken(),
+      });
     },
 
     async sendNote() {
-      const token = await getVimValue(denops, { type: "g", name: "token" }) 
+      const token = await getVimValue(denops, { type: "g", name: "token" });
+      // const token = await system.readConfig()
       if (token === null) {
-        await denops.dispatcher.getToken()
-        await denops.dispatcher.sendNote()
+        await denops.dispatcher.getToken();
+        return await denops.dispatcher.sendNote();
       }
-      
+
       const noteBody = await helper.input(denops, {
-        prompt: "What you want to say? "
-      })
+        prompt: "What you want to say? ",
+      });
 
       if (noteBody) {
-        return await sendNoteReq(denops, { body: noteBody })
+        return await sendNoteReq(denops, { body: noteBody });
       } else {
-        throw "[User input]Note body is empty"
+        throw new Error("[User input]Note body is empty");
       }
-    }
+    },
   };
 
   await denops.cmd(
-    `command! -nargs=0 VimskeyAuth call denops#request('${denops.name}', 'getToken', [])`
-  )
+    `command! -nargs=0 VimskeyAuth call denops#request('${denops.name}', 'getToken', [])`,
+  );
 
   await denops.cmd(
-    `command! -nargs=0 VimskeyNote call denops#request('${denops.name}', 'sendNote', [])`
-  )
+    `command! -nargs=0 VimskeyNote call denops#request('${denops.name}', 'sendNote', [])`,
+  );
 
+  // await denops.cmd(
+  //   `command! -nargs=0 VimskeyTest call denops#request('${denops.name}', 'test', [])`,
+  // );
   // await denops.cmd(
   //   `
   //   function! VimskeyTimelineTypeCompletion(ArgLead, CmdLine, CursorPos)

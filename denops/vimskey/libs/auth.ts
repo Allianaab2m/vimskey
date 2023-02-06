@@ -1,4 +1,4 @@
-import { MiAuth, UrlParam, Permissions } from "../deps.ts"
+import { MiAuth, Permissions, UrlParam } from "../deps.ts";
 
 export const useMiauth = (origin: string) => {
   const param: UrlParam = {
@@ -20,12 +20,11 @@ export const useMiauth = (origin: string) => {
       Permissions.MutesWrite,
       Permissions.NotificationsRead,
       Permissions.NotificationsWrite,
-    ]
-  } 
-  const session = crypto.randomUUID()
+    ],
+  };
+  const session = crypto.randomUUID();
 
-  const miauth = new MiAuth(origin, param, session)
+  const miauth = new MiAuth(origin, param, session);
 
-  return miauth
-}
-
+  return miauth;
+};
