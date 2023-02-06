@@ -25,7 +25,7 @@ Plug 'Allianaab2m/vimskey'
 
 実行時にログインするよう求められます。
 
-インスタンスURIを入力し,起動したブラウザで認証してください。
+インスタンスURLを入力し,起動したブラウザで認証してください。
 
 ログインの状態はVimを閉じるまで保存されます。
 
@@ -33,29 +33,13 @@ Plug 'Allianaab2m/vimskey'
 
 タイムラインを表示します。
 
-`:VimskeyNoteFromCmdline <content> <'public' | 'home'>`
+`:VimskeyAuth`
+
+MiAuthを通じて認証します。
+
+`:VimskeyNote`
 
 コマンドラインからノートを送信します。
-
-`:VimskeyNotification`
-
-コマンド実行後からの通知を受け取ります。
-
-`notify-send`コマンドが実行できる環境ではデスクトップ通知も行います。
-
-## for Neovim Users
-
-Neovimを使っている方は[noice.nvim](https://github.com/folke/noice.nvim)をインストールすることをおすすめします。
-
-![withNoice](images/withNoice.png)
-
-## Todo
-
-- [ ] ノート機能
-  - [ ] バッファから
-  - [x] Cmdlineから
-- [ ] Renote機能
-- [ ] 設定保存機能
 
 ## Thanks!
 
