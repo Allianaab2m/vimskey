@@ -1,6 +1,6 @@
 import { Denops, Misskey } from "../deps.ts";
-import { buffer, fn } from "../deps.ts"
-import { zod } from "../deps.ts"
+import { buffer, fn } from "../deps.ts";
+import { zod } from "../deps.ts";
 import { getVimValue } from "./denops.ts";
 
 type Visibility = "home" | "public" | "followers" | "specified";
@@ -56,17 +56,20 @@ export const connectTimeline = async (
   denops: Denops,
   instanceUri: string,
   token: string,
-  timelineType: zod.infer<typeof Timeline> = "hybrid"
+  timelineType: zod.infer<typeof Timeline> = "hybrid",
 ) => {
-  const stream = new Misskey.Stream(instanceUri, { token })
-  const channel = stream.useChannel(`${timelineType}Timeline`)
-  const tlBuffer = await buffer.open(denops, `vimskey://${instanceUri}/${timelineType}TL`)
-  channel.on("note", (async (n) => {
+  const stream = new Misskey.Stream(instanceUri, { token });
+  const channel = stream.useChannel(`${timelineType}Timeline`);
+  const tlBuffer = await buffer.open(
+    denops,
+    `vimskey://${instanceUri}/${timelineType}TL`,
+  );
+  channel.on("note", async (n) => {
     if (n.text) {
-      const bufferText = `${n.user.name}(@${n.user.username}): ${n.text}`
+      const bufferText = `${n.user.name}(@${n.user.username}): ${n.text}`;
       await buffer.modifiable(denops, tlBuffer.bufnr, async () => {
-        await fn.appendbufline(denops, tlBuffer.bufnr, 0, bufferText)
-      })
+        await fn.appendbufline(denops, tlBuffer.bufnr, 0, bufferText);
+      });
     }
-  }))
-}
+  });
+};

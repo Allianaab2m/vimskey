@@ -1,9 +1,9 @@
 import { Denops, helper } from "./deps.ts";
 import { auth, dps } from "./deps.ts";
 import { open } from "./deps.ts";
-import { zod } from "./deps.ts"
-import { unknownutil } from "./deps.ts"
-import { sendNoteReq, connectTimeline } from "./libs/misskey.ts";
+import { zod } from "./deps.ts";
+import { unknownutil } from "./deps.ts";
+import { connectTimeline, sendNoteReq } from "./libs/misskey.ts";
 import { getVimValue } from "./libs/denops.ts";
 
 export async function main(denops: Denops): Promise<void> {
@@ -27,13 +27,21 @@ export async function main(denops: Denops): Promise<void> {
       // const token = await system.readConfig()
       if (token === null) {
         await denops.dispatcher.getToken();
-        await denops.dispatcher.openTimeline(validatedTimelineType)
-        return
+        await denops.dispatcher.openTimeline(validatedTimelineType);
+        return;
       }
-      const instanceUri = await getVimValue(denops, { type: "g", name: "instance#origin" }) as string
+      const instanceUri = await getVimValue(denops, {
+        type: "g",
+        name: "instance#origin",
+      }) as string;
 
       if (token) {
-        await connectTimeline(denops, instanceUri, token, validatedTimelineType);
+        await connectTimeline(
+          denops,
+          instanceUri,
+          token,
+          validatedTimelineType,
+        );
       }
     },
 

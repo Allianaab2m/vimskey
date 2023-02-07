@@ -1,9 +1,11 @@
 # vimskey
+
 Misskey client for Vim/Neovim(WIP)
 
 ## Install
 
-予め[Deno](https://deno.land), [denops.vim](https://github.com/vim-denops/denops.vim)がインストールされている必要があります。
+予め[Deno](https://deno.land),
+[denops.vim](https://github.com/vim-denops/denops.vim)がインストールされている必要があります。
 Denoは最新版をインストールしてください。
 
 Packerの場合
@@ -16,6 +18,7 @@ use({
 ```
 
 vim-plugの場合
+
 ```vim
 Plug 'vim-denops/denops.vim'
 Plug 'Allianaab2m/vimskey'
