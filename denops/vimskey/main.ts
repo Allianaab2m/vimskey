@@ -1,12 +1,3 @@
-// import { Denops, fn, helper, unknownutil, variable } from "./deps.ts";
-// import { BufferNoteData, NoteParamSchema, TimelineSchema } from "./validate.ts";
-// import {
-//   connectToNotification,
-//   connectToTimeline,
-//   getMiAuthToken,
-//   sendNoteRequest,
-//   tellUser,
-// } from "./libs.ts";
 import { Denops, helper } from "./deps.ts";
 import { auth, dps } from "./deps.ts";
 import { open } from "./deps.ts";
@@ -46,59 +37,10 @@ export async function main(denops: Denops): Promise<void> {
       }
     },
 
-    // async sendNote(text: unknown, visiblity: unknown) {
-    //   const validatedNoteParams = (() => {
-    //     try {
-    //       return NoteParamSchema.parse({
-    //         text,
-    //         visiblity,
-    //       });
-    //     } catch (e) {
-    //       console.log(e);
-    //       helper.echoerr(denops, "text or visiblity is invalid.");
-    //     }
-    //   })();
-    //   const instanceUri = await tellUser(denops, "InstanceURI:", {
-    //     variable: { name: "InstanceUri", vimType: "g" },
-    //   });
-    //   const token = await getMiAuthToken(denops, instanceUri);
-    //   console.log(validatedNoteParams);
-    //   if (validatedNoteParams && token) {
-    //     sendNoteRequest(instanceUri, token, validatedNoteParams);
-    //   }
-    // },
-    //
-    // async getCursorNoteData() {
-    //   const cursorPos = await fn.getcurpos(denops);
-    //   const bufferLogData: Array<BufferNoteData> = JSON.parse(
-    //     await Deno.readTextFile("/tmp/vimskeyLog.json"),
-    //   );
-    //   // console.log(bufferLogData[cursorPos[1] - 1].id);
-    //   variable.w.set(
-    //     denops,
-    //     "VimskeyCopiedNoteId",
-    //     bufferLogData[cursorPos[1] - 1].id,
-    //   );
-    // },
-    //
-    // async openNotification() {
-    //   const instanceUri = await tellUser(denops, "InstanceURI:", {
-    //     variable: { name: "InstanceUri", vimType: "g" },
-    //   });
-    //   const token = await getMiAuthToken(denops, instanceUri);
-    //   if (token) {
-    //     connectToNotification(denops, instanceUri, token);
-    //   }
-    // },
-
     async getToken() {
       if (await getVimValue(denops, { type: "g", name: "token" })) {
         return console.log("Already authed.");
       }
-
-      // if (Deno.build.os === "windows") {
-      //   return console.log("Please use `%APPDATA%/vimskey/config.json instead of using `VimskeyAuth` command.")
-      // }
 
       const origin = await dps.saveInput(denops, {
         type: "g",
@@ -146,32 +88,25 @@ export async function main(denops: Denops): Promise<void> {
   );
 
   await denops.cmd(
-    `command! -nargs=0 VimskeyNote call denops#request('${denops.name}', 'sendNote', [])`,
+    `
+      function! VimskeyTimelineTypeCompletion(ArgLead, CmdLine, CursorPos)
+        let l:filter_cmd = printf('v:val =~ "^%s"', a:ArgLead)
+        return filter(['global', 'hybrid', 'local', 'home'], l:filter_cmd)
+      endfunction
+    `,
   );
 
   await denops.cmd(
-    `command! -nargs=0 VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', [])`
-  )
-
-  // await denops.cmd(
-  //   `command! -nargs=0 VimskeyTest call denops#request('${denops.name}', 'test', [])`,
-  // );
-  // await denops.cmd(
-  //   `
-  //   function! VimskeyTimelineTypeCompletion(ArgLead, CmdLine, CursorPos)
-  //     let l:filter_cmd = printf('v:val =~ "^%s"', a:ArgLead)
-  //     return filter(['global', 'hybrid', 'local', 'home'], l:filter_cmd)
-  //   endfunction
-  //   `,
-  // );
+    `command! -nargs=0 VimskeyNote call denops#request('${denops.name}', 'sendNote', [])`,
+  );
   //
   // await denops.cmd(
   //   `command! -nargs=0 VimskeyNotification call denops#request('${denops.name}', 'openNotification', [])`,
   // );
   //
-  // await denops.cmd(
-  //   `command! -nargs=1 -complete=customlist,VimskeyTimelineTypeCompletion VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', ['<args>'])`,
-  // );
+  await denops.cmd(
+    `command! -nargs=1 -complete=customlist,VimskeyTimelineTypeCompletion VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', ['<args>'])`,
+  );
   //
   // await denops.cmd(
   //   `command! -nargs=+ VimskeyNoteFromCmdline call denops#request('${denops.name}', 'sendNote', [<args>])`,
