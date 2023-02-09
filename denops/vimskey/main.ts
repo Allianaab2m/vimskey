@@ -79,14 +79,18 @@ export async function main(denops: Denops): Promise<void> {
         return await denops.dispatcher.sendNote();
       }
 
-      const noteBody = await helper.input(denops, {
-        prompt: "What you want to say? ",
-      });
+      const noteBody = await (async () => {
+        try {
+          return await helper.input(denops, {
+            prompt: "What you want to say? ",
+          })
+        } catch(_e) {
+          // throw new Error("[User input] Note body is empty")
+        }
+      })();
 
       if (noteBody) {
         return await sendNoteReq(denops, { body: noteBody });
-      } else {
-        throw new Error("[User input]Note body is empty");
       }
     },
   };
