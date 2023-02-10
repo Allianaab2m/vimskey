@@ -4,7 +4,7 @@ import { open } from "./deps.ts";
 import { zod } from "./deps.ts";
 import { unknownutil } from "./deps.ts";
 import { connectTimeline, sendNoteReq } from "./libs/misskey.ts";
-import { getVimValue } from "./libs/denops.ts";
+import { system } from "./deps.ts"
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
@@ -23,30 +23,26 @@ export async function main(denops: Denops): Promise<void> {
         }
       })();
 
-      const token = await getVimValue(denops, { type: "g", name: "token" });
-      // const token = await system.readConfig()
-      if (token === null) {
+      const credential = await system.readCredential()
+
+      if (!credential) {
         await denops.dispatcher.getToken();
         await denops.dispatcher.openTimeline(validatedTimelineType);
         return;
       }
-      const instanceUri = await getVimValue(denops, {
-        type: "g",
-        name: "instance#origin",
-      }) as string;
 
-      if (token) {
-        await connectTimeline(
-          denops,
-          instanceUri,
-          token,
-          validatedTimelineType,
-        );
-      }
+      const { origin, token } = credential
+
+      await connectTimeline(
+        denops,
+        origin,
+        token,
+        validatedTimelineType,
+      );
     },
 
     async getToken() {
-      if (await getVimValue(denops, { type: "g", name: "token" })) {
+      if (await system.readCredential()) {
         return console.log("Already authed.");
       }
 
@@ -64,17 +60,14 @@ export async function main(denops: Denops): Promise<void> {
         "After authentication is complete, press enter...",
       );
 
-      await dps.setVimValue(denops, {
-        type: "g",
-        name: "token",
-        value: await miauth.getToken(),
-      });
+      const token = await miauth.getToken()
+      await system.writeCredential({origin, token })
     },
 
     async sendNote() {
-      const token = await getVimValue(denops, { type: "g", name: "token" });
-      // const token = await system.readConfig()
-      if (token === null) {
+      const credential = await system.readCredential()
+
+      if (!credential) {
         await denops.dispatcher.getToken();
         return await denops.dispatcher.sendNote();
       }
@@ -85,12 +78,12 @@ export async function main(denops: Denops): Promise<void> {
             prompt: "What you want to say? ",
           })
         } catch(_e) {
-          // throw new Error("[User input] Note body is empty")
+          return
         }
       })();
 
       if (noteBody) {
-        return await sendNoteReq(denops, { body: noteBody });
+        return await sendNoteReq({ body: noteBody });
       }
     },
   };
@@ -115,6 +108,9 @@ export async function main(denops: Denops): Promise<void> {
   // await denops.cmd(
   //   `command! -nargs=0 VimskeyNotification call denops#request('${denops.name}', 'openNotification', [])`,
   // );
+  await denops.cmd(
+    `command! -nargs=0 VskyTest call denops#request('${denops.name}', 'test', [])`
+  )
   //
   await denops.cmd(
     `command! -nargs=1 -complete=customlist,VimskeyTimelineTypeCompletion VimskeyOpenTL call denops#request('${denops.name}', 'openTimeline', ['<args>'])`,
