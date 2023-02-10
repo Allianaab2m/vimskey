@@ -1,20 +1,16 @@
 import { Denops, Misskey } from "../deps.ts";
 import { buffer, fn } from "../deps.ts";
 import { zod } from "../deps.ts";
-import { getVimValue } from "./denops.ts";
+import { system } from "../deps.ts"
 
 type Visibility = "home" | "public" | "followers" | "specified";
 
 export const sendNoteReq = async (
-  denops: Denops,
   params: { visibility?: Visibility; body: string },
 ) => {
-  const origin = await getVimValue(denops, {
-    type: "g",
-    name: "instance#origin",
-  });
-  const token = await getVimValue(denops, { type: "g", name: "token" });
-  if (origin === null || token === null) throw "[Vimskey] Auth not found";
+  const credential = await system.readCredential()
+  if (!credential) throw "[Vimskey] Auth not found";
+  const { origin, token } = credential
 
   const client = new Misskey.api.APIClient({ origin, credential: token });
 
