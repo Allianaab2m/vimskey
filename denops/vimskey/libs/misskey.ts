@@ -1,9 +1,43 @@
 import { Denops, Misskey } from "../deps.ts";
-import { buffer, fn } from "../deps.ts";
+import { buffer, vars } from "../deps.ts";
 import { zod } from "../deps.ts";
 import { system } from "../deps.ts"
 
 type Visibility = "home" | "public" | "followers" | "specified";
+
+// ref: https://github.com/ansanloms/denops-misskey/blob/f648207b1ceccadb0234f25991f5fcdefd6d68c8/denops/misskey/template.ts
+export const noteTemplate = (n: Misskey.entities.Note, prefix?: string) => {
+  const template: string[] = [];
+
+  const sep = " │ ";
+  const icon = n.user.isCat ? "🐱" : (n.user.isBot ? "🤖" : "👤");
+
+  template.push(
+    `<mk-name>${icon} ${n.user.name || ""}</mk-name> ` +
+      `<mk-username>@${n.user.username}</mk-username>` +
+      (n.user.host ? `<mk-host>@n.user.host</mk-host>` : ""),
+  );
+  template.push("");
+
+  if (n.text) {
+    template.push(
+      ...`${n.text || ""}`.split("\n").map((v) => `  ${v}`),
+    );
+    template.push("");
+  }
+
+  if (n.renote) {
+    template.push(...noteTemplate(n.renote, `${prefix || ""} ${sep}`));
+    template.push("");
+  }
+
+  if (template.at(-1) === "") {
+    template.pop();
+  }
+
+  return template.map((v) => `${prefix || ""}${v}`);
+};
+// refend thanks!
 
 export const sendNoteReq = async (
   params: { visibility?: Visibility; body: string },
@@ -25,47 +59,40 @@ export const sendNoteReq = async (
 };
 
 const Timeline = zod.enum(["hybrid", "home", "local", "global"]);
-const BufferNote = zod.object({
-  id: zod.string(),
-  text: zod.string(),
-});
-
-// export const connectTimeline = async (
-//   denops: Denops,
-//   instanceUri: string,
-//   token: string,
-//   timelineType: zod.infer<typeof Timeline> = "local",
-// ) => {
-//   const stream = new Misskey.Stream(instanceUri, { token })
-//   const channel = stream.useChannel(`${timelineType}Timeline`)
-//   const tlData: Array<zod.infer<typeof BufferNote>> = []
-//   const tlbuffer = await buffer.open(denops, `vimskey://${timelineType}TL`)
-//   channel.on("note", async (note) => {
-//     if (note.text) {
-//       const bufferText = `${note.user.name}(${note.user.username}): ${note.text}`
-//       await fn.appendbufline(denops, tlbuffer.bufnr, 0, bufferText)
-//     }
-//   })
-// }
 
 export const connectTimeline = async (
   denops: Denops,
-  instanceUri: string,
+  origin: string,
   token: string,
   timelineType: zod.infer<typeof Timeline> = "hybrid",
 ) => {
-  const stream = new Misskey.Stream(instanceUri, { token });
+  const stream = new Misskey.Stream(origin, { token });
   const channel = stream.useChannel(`${timelineType}Timeline`);
   const tlBuffer = await buffer.open(
     denops,
-    `vimskey://${instanceUri}/${timelineType}TL`,
+    `vimskey://${origin}/${timelineType}TL`,
   );
+  await denops.cmd(`setlocal ft=vimskey-timeline buftype=acwrite conceallevel=3`)
+
+
   channel.on("note", async (n) => {
     if (n.text) {
-      const bufferText = `${n.user.name}(@${n.user.username}): ${n.text}`;
-      await buffer.modifiable(denops, tlBuffer.bufnr, async () => {
-        await fn.appendbufline(denops, tlBuffer.bufnr, 0, bufferText);
-      });
+      // ref: https://github.com/ansanloms/denops-misskey/blob/f648207b1ceccadb0234f25991f5fcdefd6d68c8/denops/misskey/main.ts#L59-L73
+      const bufnr = tlBuffer.bufnr
+      const line = Number(await denops.call("line", "."))
+      await denops.call("appendbufline", bufnr, 0, [
+        "",
+        ...noteTemplate(n),
+        "",
+      ])
+
+      if (bufnr === (await denops.call("bufnr", "%"))) {
+        if (line === 1) {
+          await denops.cmd("1")
+        }
+        await denops.cmd("redraw")
+      }
+      // refend thanks!
     }
   });
 };
