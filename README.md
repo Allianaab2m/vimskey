@@ -30,7 +30,7 @@ Plug 'Allianaab2m/vimskey'
 
 インスタンスURLを入力し,起動したブラウザで認証してください。
 
-ログインの状態はVimを閉じるまで保存されます。
+ログインの状態は`/home/user/.local/share/vimskey/credential.json`に保存されます。
 
 `:VimskeyOpenTL <'home' | 'local' | 'hybrid' | 'global'>`
 
@@ -44,8 +44,13 @@ MiAuthを通じて認証します。
 
 コマンドラインからノートを送信します。
 
+`:VimskeyRenote`
+
+TL表示時にカーソル上のノートをリノートします。
+
 ## Thanks!
 
 - [denops.vim](https://github.com/vim-denops/denops.vim)
 - [misskey.js](https://github.com/misskey-dev/misskey.js)
 - [MiAuth.js](https://github.com/Comamoca/miauth.js)
+- [denops-misskey](https://github.com/ansanloms/denops-misskey)
