@@ -1,6 +1,7 @@
-import { Denops } from "../deps.ts";
+import { Denops, fn } from "../deps.ts";
 import { variable } from "../deps.ts";
 import { helper } from "../deps.ts";
+import { nvfn } from "../deps.ts"
 
 export const waitPressEnter = async (denops: Denops, promptText: string) => {
   await helper.input(denops, {
@@ -65,3 +66,18 @@ export const getVimValue = async (denops: Denops, params: {
   // console.log(`${params.name}: ${vimValue}`)
   return vimValue;
 };
+
+export const ui_select = async (denops: Denops, array: Array<string>, prompt: string) => {
+  const items = array.map(v => '"' + v + '"').join(",")
+  console.log(items)
+  await denops.call(
+    'luaeval',
+    `
+      vim.ui.select({${items}}, 
+      { prompt = ${prompt} },
+      function(c) 
+        vim.b.${prompt} = c
+      end)
+    `
+  )
+}

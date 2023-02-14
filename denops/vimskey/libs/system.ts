@@ -1,22 +1,6 @@
-import { fs, path, zod } from "../deps.ts";
+import { path, zod } from "../deps.ts";
 import xdg from "https://deno.land/x/xdg@v10.5.1/src/mod.deno.ts";
-
-// export const browserOpen = (url: string) => {
-//   switch (Deno.build.os){
-//     case "linux":
-//       Deno.run({ cmd: ["xdg-open", url] })
-//       break
-//     case "darwin":
-//       Deno.run({ cmd: ["open", url] })
-//       break
-//     case "windows":
-//       // TODO: It may not work on Windows/Mac
-//       Deno.run({ cmd: ["start", url] })
-//       break
-//     default:
-//       break
-//   }
-// }
+import { ensureFile } from "./utils.ts";
 
 export const configFile = path.join(
   xdg.config(),
@@ -24,22 +8,52 @@ export const configFile = path.join(
   "config.json",
 );
 
+export const credentialFile = path.join(
+  xdg.data(),
+  "vimskey",
+  "credentials.json"
+)
+
 export const Config = zod.object({
-  token: zod.string(),
+  timeline: zod.enum(["hybrid", "home", "local", "global"]),
+  visibility: zod.enum(["public", "home", "followers"]),
 });
 
-const ensureSettingFiles = async () => {
-  // await fs.ensureDir(path.join(xdg.data(), "vimskey"))
-  await fs.ensureDir(path.join(xdg.config(), "vimskey"));
+export const Credential = zod.object({
+    origin: zod.string().url(),
+    token: zod.string(),
+});
+
+const readMetaFile = async (file: string) => {
+  await ensureFile(file);
+  const body = await Deno.readTextFile(file);
+  if (!body) {
+    console.log(`[Vimskey] created ${file}`)
+    await Deno.writeTextFile(file, "{}")
+    return await Deno.readTextFile(file)
+  } else {
+    return body
+  }
 };
 
 export const readConfig = async (): Promise<zod.infer<typeof Config>> => {
-  const body = await Deno.readTextFile(configFile);
-  if (!body) {
-    console.log("Setted vimskey files");
-    await ensureSettingFiles();
-  }
-
-  const config = Config.parse(JSON.parse(body));
-  return config;
+  const body = await readMetaFile(configFile)
+  return Config.parse(JSON.parse(body));
 };
+
+export const writeConfig = async (params: zod.infer<typeof Config>) => {
+  const config = { ...Config.parse(await readMetaFile(configFile)), ...params }
+  await Deno.writeTextFile(configFile, JSON.stringify(config))
+}
+
+export const readCredential = async (): Promise<zod.infer<typeof Credential> | null> => {
+  const body = await readMetaFile(credentialFile)
+  if (body == "{}") {
+    return null
+  }
+  return Credential.parse(JSON.parse(body))
+}
+
+export const writeCredential = async (params: zod.infer<typeof Credential>) => {
+  await Deno.writeTextFile(credentialFile, JSON.stringify(params))
+}
