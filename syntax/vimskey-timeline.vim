@@ -12,12 +12,14 @@ highlight! link VimskeyTimelineTagEnd Conceal
 syntax region VimskeyTimelineName start="<mk-name>" end="</mk-name>" contains=VimskeyTimelineTagBegin,VimskeyTimelineTagEnd keepend
 syntax region VimskeyTimelineUserName start="<mk-username>" end="</mk-username>" contains=VimskeyTimelineTagBegin,VimskeyTimelineTagEnd keepend
 syntax region VimskeyTimelineHost start="<mk-host>" end="</mk-host>" contains=VimskeyTimelineTagBegin,VimskeyTimelineTagEnd keepend
+syntax region VimskeyTimelineId start="<mk-id>" end="</mk-id>" contains=VimskeyTimelineTagBegin, VimskeyTimelineTagEnd keepend
 syntax match VimskeyTimelineSep "│" contains=VimskeyTimelineTagBegin,VimskeyTimelineTagEnd keepend
 syntax match VimskeyTimelineHashtag /\zs#[^ ]\+/
 
 highlight! link VimskeyTimelineName MoreMsg
 highlight! link VimskeyTimelineUserName Constant
 highlight! link VimskeyTimelineHost LineNr
+highlight! link VimskeyTimelineId LineNr "TODO: Fix transeparency
 highlight! link VimskeyTimelineSeparator NonText
 highlight! link VimskeyTimelineHashtag Underlined
 

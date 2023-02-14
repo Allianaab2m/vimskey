@@ -6,9 +6,10 @@ import {
   open,
   system,
   unknownutil,
+  fn,
   zod,
 } from "./deps.ts";
-import { connectTimeline, sendNoteReq } from "./libs/misskey.ts";
+import { connectTimeline, sendNoteReq, sendRenoteReq } from "./libs/misskey.ts";
 
 export const actionOpenTimeline = async (
   denops: Denops,
@@ -95,3 +96,13 @@ export const actionSendNote = async (denops: Denops) => {
     return await sendNoteReq({ body: noteBody });
   }
 };
+
+export const actionRenote = async (denops: Denops) => {
+  const cursorText = await fn.getline(denops, '.')
+  const id = cursorText.match(/(?<=<mk-id>).*(?=<\/mk-id>)/)
+  if (id) {
+    await sendRenoteReq(id[0])
+  } else {
+    return console.error("[Vimskey] Renote id not found.")
+  }
+}

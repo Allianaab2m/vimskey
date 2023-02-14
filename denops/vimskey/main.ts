@@ -1,5 +1,5 @@
 import { Denops } from "./deps.ts";
-import { actionOpenTimeline, actionGetToken, actionSendNote } from "./action.ts";
+import { actionOpenTimeline, actionGetToken, actionSendNote, actionRenote } from "./action.ts";
 
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
@@ -14,6 +14,10 @@ export async function main(denops: Denops): Promise<void> {
     async sendNote() {
       await actionSendNote(denops)
     },
+
+    async renote() {
+      await actionRenote(denops)
+    }
   };
 
   await denops.cmd(

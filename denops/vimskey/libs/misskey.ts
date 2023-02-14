@@ -1,5 +1,5 @@
 import { Denops, Misskey } from "../deps.ts";
-import { buffer, vars } from "../deps.ts";
+import { buffer } from "../deps.ts";
 import { zod } from "../deps.ts";
 import { system } from "../deps.ts"
 
@@ -15,13 +15,14 @@ export const noteTemplate = (n: Misskey.entities.Note, prefix?: string) => {
   template.push(
     `<mk-name>${icon} ${n.user.name || ""}</mk-name> ` +
       `<mk-username>@${n.user.username}</mk-username>` +
-      (n.user.host ? `<mk-host>@n.user.host</mk-host>` : ""),
+      `<mk-id>${n.id}</mk-id>` +
+      (n.user.host ? `<mk-host>@${n.user.host}</mk-host>` : ""),
   );
   template.push("");
 
   if (n.text) {
     template.push(
-      ...`${n.text || ""}`.split("\n").map((v) => `  ${v}`),
+      ...`${n.text || ""}`.split("\n").map((v) => `  ${v} <mk-id>${n.id}</mk-id>`),
     );
     template.push("");
   }
@@ -57,6 +58,21 @@ export const sendNoteReq = async (
     throw "[Misskey api] notes/create error";
   }
 };
+
+export const sendRenoteReq = async (id: string) => {
+  const credential = await system.readCredential()
+  if (!credential) throw "[Vimskey] Auth not found"
+  const { origin, token } = credential
+
+  const client = new Misskey.api.APIClient({ origin, credential: token })
+
+  try {
+    await client.request("notes/create", { visibility: "public", renoteId: id })
+  } catch (e) {
+    console.error(e)
+    throw "[Misskey api] notes/create error"
+  }
+}
 
 const Timeline = zod.enum(["hybrid", "home", "local", "global"]);
 
